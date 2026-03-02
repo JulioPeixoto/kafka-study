@@ -6,7 +6,7 @@ const BASE_URL = 'http://localhost:8000';
 
 export const options = {
   duration: '30s',
-  vus: 20,
+  vus: 100,
   thresholds: {
     http_req_failed:   ['rate<0.05'],  // menos de 5% de erros
     http_req_duration: ['p(95)<300'],  // 95% abaixo de 300ms
