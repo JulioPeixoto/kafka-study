@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, status
 from datetime import datetime
 from typing import List
@@ -6,17 +7,15 @@ from bson import ObjectId
 from src.models import Order, OrderCreate, OrderUpdate
 from src.database import connect_to_mongo, close_mongo_connection, get_database
 
-app = FastAPI(title="Order CRUD API", version="1.0.0")
 
-
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await connect_to_mongo()
-
-
-@app.on_event("shutdown")
-async def shutdown():
+    yield
     await close_mongo_connection()
+
+
+app = FastAPI(title="Order CRUD API", version="1.0.0", lifespan=lifespan)
 
 
 @app.get("/", tags=["Health"])
@@ -26,15 +25,12 @@ async def health_check():
 
 @app.post("/orders", response_model=Order, status_code=status.HTTP_201_CREATED, tags=["Orders"])
 async def create_order(order: OrderCreate) -> Order:
-    """Create a new order"""
     db = get_database()
     order_dict = order.model_dump()
-    order_dict["_id"] = str(ObjectId())
     order_dict["created_at"] = datetime.utcnow()
     order_dict["updated_at"] = datetime.utcnow()
 
     result = await db["orders"].insert_one(order_dict)
-
     order_dict["id"] = str(result.inserted_id)
     return Order(**order_dict)
 

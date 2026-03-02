@@ -1,10 +1,9 @@
-from datetime import datetime
+from pydantic import BaseModel, Field
 from typing import Optional
-from sqlmodel import SQLModel, Field
-from bson import ObjectId
+from datetime import datetime
 
 
-class OrderBase(SQLModel):
+class OrderBase(BaseModel):
     customer_name: str
     total_amount: float
     status: str = "pending"
@@ -12,16 +11,18 @@ class OrderBase(SQLModel):
 
 
 class Order(OrderBase):
-    id: Optional[str] = Field(default_factory=lambda: str(ObjectId()), primary_key=True)
+    id: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = {"populate_by_name": True}
 
 
 class OrderCreate(OrderBase):
     pass
 
 
-class OrderUpdate(SQLModel):
+class OrderUpdate(BaseModel):
     customer_name: Optional[str] = None
     total_amount: Optional[float] = None
     status: Optional[str] = None
