@@ -8,8 +8,9 @@ export const options = {
   duration: '30s',
   vus: 100,
   thresholds: {
-    http_req_failed:   ['rate<0.05'],  // menos de 5% de erros
-    http_req_duration: ['p(95)<300'],  // 95% abaixo de 300ms
+    http_req_failed:   ['rate<0.05'],
+    http_req_duration: ['p(95)<300'],
+    create_errors:     ['rate<0.05'],
   },
 };
 
@@ -39,9 +40,9 @@ export default function () {
   createTime.add(res.timings.duration);
 
   const ok = check(res, {
-    'status 201':    (r) => r.status === 201,
-    'tem id':        (r) => !!JSON.parse(r.body).id,
-    'tem created_at':(r) => !!JSON.parse(r.body).created_at,
+    'status 202':      (r) => r.status === 202,
+    'tem id':          (r) => !!JSON.parse(r.body).id,
+    'status accepted': (r) => JSON.parse(r.body).status === 'accepted',
   });
 
   errorRate.add(!ok);
